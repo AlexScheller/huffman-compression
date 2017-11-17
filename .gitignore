@@ -1,0 +1,10 @@
+huff
+*.exe
+*.huf
+*.dehuf
+out
+*.txt
+*.mdb
+Test.cs
+example
+*.text
