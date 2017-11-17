@@ -32,6 +32,7 @@ public class CodeBook
 		GenHuffmanCodes(leaves);
 		SortHuffmanCodes();
 		GenCanonicalCodes();
+		PrintFinished();
 	}
 
 	public Dictionary<char, Tuple<byte, uint>> GetCodeDict()

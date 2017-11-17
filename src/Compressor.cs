@@ -71,6 +71,9 @@ public class Compressor
 		// A one is written to indicate Huffman compression
 		bw.Write((byte)1);
 		bw.Write(inputSymbols.Length); // chars in file
+		// TODO: This could be expressed with a single byte,
+		// since the number of unique symbols is hard coded to be
+		// limited to ((2^8) - 1) 
 		bw.Write((ushort)cb.Count);
 		WriteCodeBook(bw, cb);
 		Dictionary<char, Tuple<byte, uint>> canonicalCodes = cb.GetCodeDict();
@@ -114,8 +117,18 @@ public class Compressor
 		if (sr.BaseStream.Length == 0) {
 			ExitOnError("empty file");
 		}
-		char[] symbols = new char[sr.BaseStream.Length];
-		sr.Read(symbols, 0, symbols.Length);
+
+		// The file must be read character by character
+		// due to the fact that characters may differ in
+		// byte length, so sr.Read(char[], int32, int32)
+		// cannot be reliably used unless we know all
+		// characters are encoded with a single byte.
+		List<char> symbolList = new List<char>();
+		while (sr.Peek() > -1) { // still symbols left
+			symbolList.Add((char)sr.Read());
+		}
+		char[] symbols = symbolList.ToArray();
+
 		SymbolsToCounts symbolCounts = GenCounts(symbols);
 		if (symbolCounts.Count > MAX_UNIQUE_SYMBOLS) {
 			ExitOnError("too many unique symbols to encode");
