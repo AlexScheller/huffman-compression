@@ -27,7 +27,7 @@ public class Decompressor
 		Console.WriteLine("dehuff <file-to-decompress>");
 	}
 
-	private static void ExitOnError(string error)
+	private static void ExitOnError(string msg)
 	{
 		Console.WriteLine("Error: {0}", msg);
 		PrintUsage();
