@@ -1,4 +1,3 @@
-// TODO: finish
 using System;
 using System.IO;
 using System.Text;
@@ -9,7 +8,7 @@ using SymbolsToLeaves = System.Collections.Generic.Dictionary<char, LeafNode>;
 public class Compressor
 {
 
-	private static readonly int MAX_UNIQUE_SYMBOLS = 65535;
+	private static readonly int MAX_UNIQUE_SYMBOLS = 255;
 
 	public static void Main(string[] args)
 	{
@@ -68,14 +67,14 @@ public class Compressor
 	private static void HuffmanCompression(BinaryWriter bw, char[] inputSymbols,
 									CodeBook cb)
 	{
-		// A one is written to indicate Huffman compression
-		bw.Write((byte)1);
+		// write the header
+		bw.Write((byte)1); // one for Huffman
 		bw.Write(inputSymbols.Length); // chars in file
-		// TODO: This could be expressed with a single byte,
-		// since the number of unique symbols is hard coded to be
-		// limited to ((2^8) - 1) 
-		bw.Write((ushort)cb.Count);
+		bw.Write(cb.Count);
+
 		WriteCodeBook(bw, cb);
+		
+		// encode the file
 		Dictionary<char, Tuple<byte, uint>> canonicalCodes = cb.GetCodeDict();
 		int bitCount = 0;
 		byte currByte = 0;

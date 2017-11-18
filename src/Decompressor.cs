@@ -1,11 +1,10 @@
-// TODO: finish
 using System;
 using System.IO;
 
 public class Decompressor
 {
 
-	private static readonly int MAX_CODE_LENGTH = 65535;
+	private static readonly int MAX_CODE_LENGTH = 255;
 
 	public static void Main(string[] args)
 	{
@@ -16,14 +15,26 @@ public class Decompressor
 			if (extension == ".huf") {
 				Decompress(filename);
 			} else {
-				Console.WriteLine("Not a .huf file");
-				Environment.Exit(1);
+				ExitOnError("not a .huf file");
 			}
 		} else {
-			Console.WriteLine("Please specify a single \".huf\" file");
+			ExitOnError("Please specify a single \".huf\" file");
 		}
 	}
 
+	private static void PrintUsage()
+	{
+		Console.WriteLine("dehuff <file-to-decompress>");
+	}
+
+	private static void ExitOnError(string error)
+	{
+		Console.WriteLine("Error: {0}", msg);
+		PrintUsage();
+		Environment.Exit(1);
+	}
+
+	// TODO: write an explanation
 	private static char DecodeNextChar(BitBuffer bb, int[] counts,
 									   char[] symbols)
 	{
@@ -32,17 +43,13 @@ public class Decompressor
 		int first = 0;
 		int index = 0;
 		for (int len = 1; len <= MAX_CODE_LENGTH; len++) {
-			// Console.Write("variables - code: {0}, count: {1}", code, count);
-			// Console.WriteLine(", first: {0}, index: {1}", first, index);
 			if (bb.IsEmpty) {
-				// Console.WriteLine("end of bit stream");
 				break;
 			}
 			code |= bb.NextBit();
 			count = counts[len];
 			if (code - count < first) {
 				char symbol = symbols[index + (code - first)];
-				// Console.WriteLine("symbol found: {0}", symbol);
 				return symbol;
 			}
 			index += count;
@@ -50,24 +57,24 @@ public class Decompressor
 			first <<= 1;
 			code <<= 1;
 		}
-		return 'ß'; // signals an error
+		ExitOnError("unable to decode character");
+		return 'ß';
 	}
 
 	private static void HuffmanDecompress(BinaryReader br, StreamWriter sw)
 	{
+		// process the header
 		int numSymbols = (int)br.ReadUInt32();
-		int numUniqueSymbols = (int)br.ReadUInt16();
+		int numUniqueSymbols = (int)br.ReadByte();
+		
+		// read in the codebook
 		char[] symbols = new char[numUniqueSymbols];
 		byte[] lengths = new byte[numUniqueSymbols];
 		for (int i = 0; i < numUniqueSymbols; i++) {
 			symbols[i] = br.ReadChar();
 			lengths[i] = br.ReadByte();
 		}
-		// Console.WriteLine("symbols and lengths discovered:");
-		// for (int i = 0; i < numUniqueSymbols; i++) {
-		// 	Console.WriteLine("{0}: {1}", symbols[i], lengths[i]);
-		// }
-		
+
 		// an array mapping code length to number of symbols
 		// represented with that code length, the first index
 		// is unused.
@@ -84,20 +91,18 @@ public class Decompressor
 			}
 		}
 		counts[currLength] = currCount;
+		
+		// fill he bit buffer with the rest of the file
 		long bytesLeft = br.BaseStream.Length - br.BaseStream.Position;
 		BitBuffer bb = new BitBuffer(br.ReadBytes((int)bytesLeft));
+		
+		// decode the file
 		char curr = DecodeNextChar(bb, counts, symbols);
 		while (numSymbols > 0) {
-			// Console.Write(curr);
 			sw.Write(curr);
 			curr = DecodeNextChar(bb, counts, symbols);
 			numSymbols--;
 		}
-		// Console.WriteLine();
-		// for (int i = 1; i < counts.Length; i++) {
-		// 	Console.WriteLine("length: {0}, count: {1}", i, counts[i]);
-		// }
-
 
 	}
 
@@ -109,17 +114,14 @@ public class Decompressor
 			new FileStream(filename + ".dehuf", FileMode.Create))) {
 			bool huffmanEncoded = br.ReadBoolean();
 			if (huffmanEncoded) {
-				// Console.WriteLine("huffman");
 				HuffmanDecompress(br, sw);
 			} else {
-				// Console.WriteLine("count");
+				// count compression was used
 				char symbol = br.ReadChar();
 				int num = br.ReadInt32();
 				for (int i = 0; i < num; i++) {
-					// Console.Write(symbol);
 					sw.Write(symbol);	
 				}
-				// Console.WriteLine();
 			}
 		}
 	}

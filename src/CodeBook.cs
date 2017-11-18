@@ -1,4 +1,3 @@
-// TODO: finish
 /*
  * The codebook class handles generation of the codebook from
  * the original Huffman tree build in Compressor.cs
@@ -16,12 +15,13 @@ using SymbolsToLeaves = System.Collections.Generic.Dictionary<char, LeafNode>;
 public class CodeBook
 {
 
+	// TODO: refactor the file to use less globals
 	private char[] symbols;
 	private string[] codes;
 	private byte[] lengths;
 	private uint[] canonicalCodes;
 
-	public int Count => symbols.Length;
+	public byte Count => (byte) symbols.Length;
 
 	public CodeBook(SymbolsToLeaves leaves)
 	{
@@ -32,7 +32,6 @@ public class CodeBook
 		GenHuffmanCodes(leaves);
 		SortHuffmanCodes();
 		GenCanonicalCodes();
-		PrintFinished();
 	}
 
 	public Dictionary<char, Tuple<byte, uint>> GetCodeDict()
@@ -100,8 +99,7 @@ public class CodeBook
 		b = temp;
 	}
 
-	// The following three methods comprise QuickSort.
-	// Note that although QuickSort is used here, some
+	// TODO: Although QuickSort is used here, some
 	// form of bucket sort could be used to sort in O(n)
 	// time.
 	private void SortHuffmanCodes()
