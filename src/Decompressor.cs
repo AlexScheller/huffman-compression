@@ -97,13 +97,10 @@ public class Decompressor
 		BitBuffer bb = new BitBuffer(br.ReadBytes((int)bytesLeft));
 		
 		// decode the file
-		char curr = DecodeNextChar(bb, counts, symbols);
 		while (numSymbols > 0) {
-			sw.Write(curr);
-			curr = DecodeNextChar(bb, counts, symbols);
+			sw.Write(DecodeNextChar(bb, counts, symbols));
 			numSymbols--;
 		}
-
 	}
 
 	private static void Decompress(string filename)
