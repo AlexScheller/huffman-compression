@@ -2,6 +2,8 @@
 
 **A toy implementation of file compression with Canonical Huffman Encoding.**
 
+![action shot](huffman-example.png "usage of the program")
+
 __TODO__
 
 * resolve todos scattered about the code
