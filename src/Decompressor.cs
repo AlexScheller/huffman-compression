@@ -105,10 +105,12 @@ public class Decompressor
 
 	private static void Decompress(string filename)
 	{
+		// remove the ".huf" extension
+		string outputName = filename.Substring(0, filename.Length - 4);
 		using (BinaryReader br = new BinaryReader(
 			new FileStream(filename, FileMode.Open)))
 		using (StreamWriter sw = new StreamWriter(
-			new FileStream(filename + ".dehuf", FileMode.Create))) {
+			new FileStream(outputName, FileMode.Create))) {
 			bool huffmanEncoded = br.ReadBoolean();
 			if (huffmanEncoded) {
 				HuffmanDecompress(br, sw);

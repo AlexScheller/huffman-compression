@@ -5,9 +5,30 @@
 __TODO__
 
 * resolve todos scattered about the code
-* see about fully implementing DEFLATE
+* see about fully implementing INFALTE/DEFLATE
 
-Format for the outputted file:
+__Compiling and running the program:__
+
+This program was written and tested on Ubuntu 16.04 with the mono compiler.
+Assuming you have a similar setup, simply running `make` should work.
+If you have a different setup/compiler the relevant files for compression are:
+
+	Compressor.cs (Main method),
+	SymbolNode.cs,
+	InternalNode.cs,
+	LeafNode.cs,
+	HuffmanTree.cs,
+	SymbolPriorityQueue.cs,
+	CodeBook.cs
+
+The files for decompression are:
+
+	Decompressor.cs (Main method),
+	BitBuffer.cs
+
+Note that because of potential instability, no files are ever destroyed or overwritten during the compression/decompression process, so a failure on the part of the program shouldn't result in the loss/corruption of data. Having said that, the program shouldn't have any trouble compressing/decompressing Unicode encoded text, which is its intended use.
+
+__Format for the outputted file:__
 
 section format: [(byte count)contents]
 

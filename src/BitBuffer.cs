@@ -42,6 +42,6 @@ public class BitBuffer
 		// there are still characters to decode.
 		Console.WriteLine("Error: call to NextBit on exhausted BitBuffer.");
 		Environment.Exit(1);
-		return 3;
+		return 1;
 	}
 }

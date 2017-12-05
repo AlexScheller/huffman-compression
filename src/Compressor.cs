@@ -31,7 +31,7 @@ public class Compressor
 		Environment.Exit(1);
 	}
 
-	// // Determines an appearance count for each symbol.
+	// Determines an appearance count for each symbol.
 	private static SymbolsToCounts GenCounts(char[] symbols)
 	{
 		SymbolsToCounts ret = new SymbolsToCounts();
