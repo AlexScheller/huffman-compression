@@ -34,28 +34,36 @@ public class Decompressor
 		Environment.Exit(1);
 	}
 
+	// original algorithm is from user "Mark Adler" on stack overflow at
+	// https://stackoverflow.com/questions/29575309/decoding-huffman-file-from-canonical-form
 	private static char DecodeNextChar(BitBuffer bb, int[] counts,
 									   char[] symbols)
 	{
-		int code = 0;
-		int count = 0;
-		int first = 0;
-		int index = 0;
-		for (int len = 1; len <= MAX_CODE_LENGTH; len++) {
+		// Decoding of characters works as follows:
+
+		// Remember that each symbol's code is the same length as
+		// the original Huffman-tree based code, but is based not
+		// on the branching pattern, but instead on a simple increment.
+
+		int currCode = 0; // buffer for the current code being decoded
+		int countOfLen = 0; // number of codes of a given length
+		int firstOfLen = 0; // first code of a given length
+		int indexOfFirst = 0; // index of that code's symbol in the array
+		for (int codeLen = 1; codeLen <= MAX_CODE_LENGTH; codeLen++) {
 			if (bb.IsEmpty) {
 				ExitOnError("bit buffer emptied without decoding symbol");
-				// break;
 			}
-			code |= bb.NextBit();
-			count = counts[len];
-			if (code - count < first) {
-				char symbol = symbols[index + (code - first)];
+			currCode |= bb.NextBit();
+			countOfLen = counts[codeLen];
+			if (currCode - countOfLen < firstOfLen) {
+				char symbol = symbols[indexOfFirst + (currCode - firstOfLen)];
 				return symbol;
 			}
-			index += count;
-			first += count;
-			first <<= 1;
-			code <<= 1;
+			// move to the first code of the next highest length
+			indexOfFirst += countOfLen;
+			firstOfLen += countOfLen;
+			firstOfLen <<= 1; // make room for the next bit
+			currCode <<= 1; // ditto
 		}
 		ExitOnError("max code length reached while decoding without a matching symbol");
 		return 'ß'; // unreachable
