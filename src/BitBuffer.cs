@@ -5,13 +5,12 @@
 using System;
 public class BitBuffer
 {
-	
 	private byte[] bytes;
 	private int curr; // index into bytes
 	private int bitsLeftInCurr;
 	
 	// for accessing the last bit in a byte
-	private readonly byte LAST_BIT_MASK = 0x80;
+	private const byte LAST_BIT_MASK = 0x80;
 
 	public bool IsEmpty => curr == bytes.Length;
 

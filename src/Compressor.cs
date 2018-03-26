@@ -8,7 +8,7 @@ using SymbolsToLeaves = System.Collections.Generic.Dictionary<char, LeafNode>;
 public class Compressor
 {
 
-	private static readonly int MAX_UNIQUE_SYMBOLS = 255;
+	private const int MAX_UNIQUE_SYMBOLS = 255;
 
 	public static void Main(string[] args)
 	{
@@ -45,7 +45,7 @@ public class Compressor
 		return ret;
 	}
 
-	// If for some reason there exists only one unique symbol
+	// If for some reason there exists only one unique symbol,
 	// compression consists of the symbol, and its count.
 	private static void CountCompression(BinaryWriter bw, char symbol,
 										 int count)
@@ -79,11 +79,22 @@ public class Compressor
 		int bitCount = 0;
 		byte currByte = 0;
 		uint LAST_BIT_MASK = 0x80000000;
+		// iterate over all of the input characters, writing
+		// their canonical code equivalents to a new file.
 		for (int i = 0; i < inputSymbols.Length; i++) {
+			// tup is a Tuple of a code length, and a uint
+			// representing the canonical code. These are
+			// extracted with a given input symbol as key.
 			Tuple<byte, uint> tup = canonicalCodes[inputSymbols[i]];
 			int length = tup.Item1;
 			uint code = tup.Item2;
-			code <<= (32 - length); // subtract size of a uint
+			// codes proceed from left to right so they must
+			// be left shifted until the first codeword bit
+			// is in the most significant bit of the uint.
+			code <<= (32 - length);
+			// the loop proceeds to fill up, then write single bytes
+			// with the codeword until the codeword has been exhausted.
+			// a given byte may have parts of multiple codewords.
 			while (length > 0) {
 				currByte <<= 1;
 				bitCount++;
@@ -128,13 +139,16 @@ public class Compressor
 		}
 		char[] symbols = symbolList.ToArray();
 
+		// Process the document into a dictionary mapping symbols
+		// to their respective counts. If There aren't too many
+		// unique symbols, proceed with compression.
 		SymbolsToCounts symbolCounts = GenCounts(symbols);
 		if (symbolCounts.Count > MAX_UNIQUE_SYMBOLS) {
 			ExitOnError("too many unique symbols to encode");
 		}
 		using (BinaryWriter bw = new BinaryWriter
 			(new FileStream(filename + ".huf", FileMode.Create))) {
-			if (symbolCounts.Count == 1) {
+			if (symbolCounts.Count == 1) { // rare edge case
 				CountCompression(bw, symbols[0], symbols.Length);
 			} else {
 			 	HuffmanTree ht = new HuffmanTree(symbolCounts);

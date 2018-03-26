@@ -4,11 +4,6 @@
 
 ![action shot](huffman-example.png "usage of the program")
 
-__TODO__
-
-* resolve todos scattered about the code
-* see about fully implementing INFALTE/DEFLATE
-
 __Compiling and running the program:__
 
 This program was written and tested on Ubuntu 16.04 with the mono compiler.
@@ -42,7 +37,7 @@ The codebook is stored as follows:
 
 ```(...[(1-2)Unicode Character][(1)length of the character's code]...)```
 
-Note that because the length of the characters code is expressed
+Note that because the length of a given character's code is expressed
 by a single byte, the maximum length (and therefore maximum count
 of unique symbols) is limited to 255.
 

@@ -15,9 +15,8 @@ using SymbolsToLeaves = System.Collections.Generic.Dictionary<char, LeafNode>;
 public class CodeBook
 {
 
-	// TODO: refactor the file to use less globals
 	private char[] symbols;
-	private string[] codes;
+	private string[] huffmanCodes;
 	private byte[] lengths;
 	private uint[] canonicalCodes;
 
@@ -26,7 +25,7 @@ public class CodeBook
 	public CodeBook(SymbolsToLeaves leaves)
 	{
 		this.symbols = new char[leaves.Count];
-		this.codes = new string[leaves.Count];
+		this.huffmanCodes = new string[leaves.Count];
 		this.lengths = new byte[leaves.Count];
 		this.canonicalCodes = new uint[leaves.Count];
 		GenHuffmanCodes(leaves);
@@ -37,7 +36,7 @@ public class CodeBook
 	public Dictionary<char, Tuple<byte, uint>> GetCodeDict()
 	{
 		Dictionary<char, Tuple<byte, uint>> ret = new Dictionary<char, Tuple<byte, uint>>();
-		for (int i = 0; i < codes.Length; i++) {
+		for (int i = 0; i < huffmanCodes.Length; i++) {
 			ret.Add(symbols[i], Tuple.Create(lengths[i], canonicalCodes[i]));
 		}
 		return ret;
@@ -55,16 +54,32 @@ public class CodeBook
 
 	private void GenCanonicalCodes()
 	{
+		// the algorithm for generating canonical codes works
+		// as follows (basic description straight from
+		// wikipedia):
+
+		// the first symbol is assigned a codeword with 
+		// the same length as its original codeword but all
+		// zeros.
+
+		// each subsequent symbol is assigned the next binary
+		// number is sequence
+
+		// when a longer codeword is reached, then after
+		// incrementing append zeros until the length
+		// of the new codeword is the same as the old one
 		uint code = 0; // canonical code
 		int i;
-		for (i = 0; i < codes.Length - 1; i++) {
-			byte codeLength = (byte) codes[i].Length;
+		for (i = 0; i < huffmanCodes.Length - 1; i++) {
+			byte codeLength = (byte) huffmanCodes[i].Length;
 			canonicalCodes[i] = code;
 			lengths[i] = codeLength;
-			code = code + 1 << (codes[i + 1].Length - codeLength);
+			// code++; increment
+			// code <<= (huffmanCodes[i + 1].Length - codeLength); append zeros
+			code = code + 1 << (huffmanCodes[i + 1].Length - codeLength);
 		}
 		canonicalCodes[i] = code;
-		lengths[i] = (byte) codes[i].Length;
+		lengths[i] = (byte) huffmanCodes[i].Length;
 	}
 
 	// Generate the original Huffman codes from the tree,
@@ -85,7 +100,7 @@ public class CodeBook
 				curr = curr.parent;
 			}
 			symbols[i] = entry.Key;
-			codes[i] = sb.ToString();
+			huffmanCodes[i] = sb.ToString();
 			sb.Clear();
 			i++;
 		}
@@ -99,12 +114,9 @@ public class CodeBook
 		b = temp;
 	}
 
-	// TODO: Although QuickSort is used here, some
-	// form of bucket sort could be used to sort in O(n)
-	// time.
 	private void SortHuffmanCodes()
 	{
-		QuickSort(0, codes.Length - 1);
+		QuickSort(0, huffmanCodes.Length - 1);
 	}
 
 	private void QuickSort(int beg, int end)
@@ -118,24 +130,24 @@ public class CodeBook
 
 	private int Partition(int beg, int end)
 	{
-		string pivotCode = codes[end];
+		string pivotCode = huffmanCodes[end];
 		char pivotSymbol = symbols[end];
 		// rightmost index of the left partition.
 		int lesserEnd = beg - 1;
 		for (int i = beg; i < end; i++) {
-			if (codes[i].Length <= pivotCode.Length) {
+			if (huffmanCodes[i].Length <= pivotCode.Length) {
 				// Following the algorithm for generating
 				// canonical codes, ties must be broken
 				// by symbol precedence.
-				if (codes[i].Length != pivotCode.Length ||
+				if (huffmanCodes[i].Length != pivotCode.Length ||
 					symbols[i] < pivotSymbol) {
 					lesserEnd++;
-					Swap(ref codes[lesserEnd], ref codes[i]);
+					Swap(ref huffmanCodes[lesserEnd], ref huffmanCodes[i]);
 					Swap(ref symbols[lesserEnd], ref symbols[i]);
 				}
 			}
 		}
-		Swap(ref codes[lesserEnd + 1], ref codes[end]);
+		Swap(ref huffmanCodes[lesserEnd + 1], ref huffmanCodes[end]);
 		Swap(ref symbols[lesserEnd + 1], ref symbols[end]);
 		return lesserEnd + 1;
 	}
@@ -144,9 +156,9 @@ public class CodeBook
 	
 	private void ValidateSorted()
 	{
-		for (int i = 0; i < codes.Length - 1; i++) {
-			if (codes[i].Length >= codes[i + 1].Length) {
-				if (codes[i].Length == codes[i + 1].Length) {
+		for (int i = 0; i < huffmanCodes.Length - 1; i++) {
+			if (huffmanCodes[i].Length >= huffmanCodes[i + 1].Length) {
+				if (huffmanCodes[i].Length == huffmanCodes[i + 1].Length) {
 					if (symbols[i] > symbols[i + 1]) {
 						Console.WriteLine("improper sorting");
 						Environment.Exit(1);
@@ -162,18 +174,18 @@ public class CodeBook
 
 	private void PrintSorted()
 	{
-		for (int i = 0; i < codes.Length; i++) {
-			Console.WriteLine("{0}: {1}", symbols[i], codes[i]);
+		for (int i = 0; i < huffmanCodes.Length; i++) {
+			Console.WriteLine("{0}: {1}", symbols[i], huffmanCodes[i]);
 		}
 	}
 
 	private void PrintFinished()
 	{
 		Console.WriteLine("\nfinished:");
-		for (int i = 0; i < codes.Length; i++) {
+		for (int i = 0; i < huffmanCodes.Length; i++) {
 			Console.Write("{0}: ({1})", symbols[i], lengths[i]);
 			string bitString = Convert.ToString(canonicalCodes[i], 2);
-			Console.WriteLine(" - {0} - {1}", codes[i], bitString);
+			Console.WriteLine(" - {0} - {1}", huffmanCodes[i], bitString);
 		}
 	}
 

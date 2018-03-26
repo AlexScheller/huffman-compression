@@ -34,7 +34,6 @@ public class Decompressor
 		Environment.Exit(1);
 	}
 
-	// TODO: write an explanation
 	private static char DecodeNextChar(BitBuffer bb, int[] counts,
 									   char[] symbols)
 	{
@@ -44,7 +43,8 @@ public class Decompressor
 		int index = 0;
 		for (int len = 1; len <= MAX_CODE_LENGTH; len++) {
 			if (bb.IsEmpty) {
-				break;
+				ExitOnError("bit buffer emptied without decoding symbol");
+				// break;
 			}
 			code |= bb.NextBit();
 			count = counts[len];
@@ -57,8 +57,8 @@ public class Decompressor
 			first <<= 1;
 			code <<= 1;
 		}
-		ExitOnError("unable to decode character");
-		return 'ß';
+		ExitOnError("max code length reached while decoding without a matching symbol");
+		return 'ß'; // unreachable
 	}
 
 	private static void HuffmanDecompress(BinaryReader br, StreamWriter sw)
@@ -77,7 +77,10 @@ public class Decompressor
 
 		// an array mapping code length to number of symbols
 		// represented with that code length, the first index
-		// is unused.
+		// is unused as no code can be of length 0.
+
+		// lengths[lengths.Length - 1] refers to the longest
+		// code length, therefore counts only has to be this long.
 		int[] counts = new int[lengths[lengths.Length - 1] + 1];
 		int currLength = 1;
 		int currCount = 0;
@@ -92,7 +95,7 @@ public class Decompressor
 		}
 		counts[currLength] = currCount;
 		
-		// fill he bit buffer with the rest of the file
+		// fill the bit buffer with the rest of the file
 		long bytesLeft = br.BaseStream.Length - br.BaseStream.Position;
 		BitBuffer bb = new BitBuffer(br.ReadBytes((int)bytesLeft));
 		
@@ -111,6 +114,7 @@ public class Decompressor
 			new FileStream(filename, FileMode.Open)))
 		using (StreamWriter sw = new StreamWriter(
 			new FileStream(outputName, FileMode.Create))) {
+			// first byte indicates which compression was used
 			bool huffmanEncoded = br.ReadBoolean();
 			if (huffmanEncoded) {
 				HuffmanDecompress(br, sw);

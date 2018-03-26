@@ -3,14 +3,14 @@ using SymbolToLeafNode = System.Collections.Generic.Dictionary<char, LeafNode>;
 
 public class HuffmanTree
 {
-
-	// private readonly int MAX_UNIQUE_SYMBOLS;
 	private SymbolToLeafNode leaves;
 
 	public HuffmanTree(Dictionary<char, int> symbolCounts)
 	{
-		// this.MAX_UNIQUE_SYMBOLS = MAX_UNIQUE_SYMBOLS;
+		// create a new leaf node for each symbol and assign
+		// it's weight based on count.
 		this.leaves = GenerateLeaves(symbolCounts);
+		// build the tree from the generated leaves.
 		BuildTree();
 	}
 
@@ -32,8 +32,18 @@ public class HuffmanTree
 	private void BuildTree()
 	{
 		SymbolPriorityQueue spq = new SymbolPriorityQueue(leaves);
-		// Coalesce the leaves into internal nodes, until
-		// There is only one left.
+		
+		// Coalesce the leaves into internal nodes
+		// with combined weights until there is only
+		// one left.
+
+		// The creation of an internal node from two other
+		// nodes assigns the proper parent-child relationships
+		// to be used later in code generation. This results
+		// in a tree where every leaf has a unique path from
+		// the root (the last node left), and leaves with
+		// higher weights, i.e. higher prevalence in the
+		// document to compress, have shorter paths.
 		while (spq.Count > 1) {
 			SymbolNode left = spq.ExtractMin();
 			SymbolNode right = spq.ExtractMin();
